@@ -276,7 +276,7 @@ dkim_well_known()
 	while read -r s; do
 		print_info "$s"
 
-		dkim=$(dig +short txt $s._domainkey.$d | grep "v=DKIM")
+		dkim=$(dig +short txt "$s._domainkey.$d" | grep "v=DKIM")
 
 		if [ "$dkim" != "" ]; then
 			print_good "DKIM found with selector $s: $dkim"
