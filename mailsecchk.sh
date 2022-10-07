@@ -70,7 +70,7 @@ dkim_extract=0
 dkim_key_outfile="./dkim_pubkey.pem"
 # Quite a hard choice of what is a good key size here, for now keeping to < 2048 bits
 dkim_key_minsize=2048
-m365=0
+specific=""
 
 while getopts "d:hl:p" o; do
     case "${o}" in
@@ -97,7 +97,7 @@ log "  _   .-')      ('-.                         .-')      ('-.                
 log " ( '.( OO )_   ( OO ).-.                    ( OO ).  _(  OO)                      ( OO )  /\\  ( OO )  "
 log " ,--.   ,--.) / . --. /  ,-.-')  ,--.     (_)---\\_)(,------.   .-----.   .-----. ,--. ,--.,--. ,--.  "
 log " |   \`.'   |  | \\-.  \\   |  |OO) |  |.-') /    _ |  |  .---'  '  .--./  '  .--./ |  | |  ||  .'   /  "
-log " |         |.-'-'  |  |  |  |  \\ |  | OO )\\  :\` \`.  |  |      |  |('-.  |  |('-. |   .|  ||      /, " 
+log " |         |.-'-'  |  |  |  |  \\ |  | OO )\\  :\` \`.  |  |      |  |('-.  |  |('-. |   .|  ||      /, "
 log " |  |'.'|  | \\| |_.'  |  |  |(_/ |  |\`-' | '..\`''.)(|  '--.  /_) |OO  )/_) |OO  )|       ||     ' _) "
 log " |  |   |  |  |  .-.  | ,|  |_.'(|  '---.'.-._)   \\ |  .--'  ||  |\`-'| ||  |\`-'| |  .-.  ||  .   \\   "
 log " |  |   |  |  |  | |  |(_|  |    |      | \\       / |  \`---.(_'  '--'\\(_'  '--'\\ |  | |  ||  |\\   \\  "
@@ -110,13 +110,15 @@ get_mx()
 	mx=$(dig +short mx "$domain")
 }
 
-has_m365()
+has_mx_specific()
 {
-	m365=0
+	name="$1"
+	full_name="$2"
+	mx_dn="$3"
 
-	if echo "$mx" | grep -q "mail.protection.outlook.com"; then
-		print_info "It looks like domain is using Microsoft 365, including specific tests."
-		m365=1
+	if echo "$mx" | grep -q "$mx_dn"; then
+		print_info "It looks like domain is using $full_name, including specific tests."
+		specific="$name"
 	fi
 }
 
@@ -153,20 +155,26 @@ loose_spf()
 	fi
 }
 
-spf_include_m365()
+spf_include_domain()
 {
 	spf="$1"
+	name="$2"
+	full_name="$3"
+	include="$4"
+	found_in_mx=$5
 
 	if [ "$spf" = "" ]; then
 		return
 	fi
 
-	if [ $m365 -eq 1 ]; then
-		if echo "$spf" | grep -vq "include:spf.protection.outlook.com"; then
-			print_medium "Microsoft 365 SPF not in includes"
-		else
-			print_good "SPF includes Microsoft 365 one"
-		fi
+	if [ "$found_in_mx" != "$name" ]; then
+		return
+	fi
+
+	if echo "$spf" | grep -vq "include:$include"; then
+		print_medium "$name SPF not in includes ($include)"
+	else
+		print_good "SPF includes $name one ($include)"
 	fi
 }
 
@@ -261,9 +269,33 @@ dmarc_rua_ruf()
 	fi
 }
 
+dkim_specific()
+{
+	name="$1"
+	full_name="$2"
+	selectors="$3"
+
+	if [ "$specific" != "$name" ]; then
+		return
+	fi
+
+	for s in $selectors; do
+		curr=$(dig +short txt "$s._domainkey.$d" | grep "v=DKIM")
+
+		if [ "$curr" != "" ]; then
+			print_good "DKIM $full_name set ($s)"
+			dkim="$curr"
+		fi
+	done
+
+	if [ "$dkim" = "" ]; then
+		print_bad "DKIM $full_name selectors not set while $full_name is used"
+	fi
+}
+
 dkim_m365()
 {
-	if [ $m365 -eq 0 ]; then
+	if [ "$specific" != "m365"  ]; then
 		return
 	fi
 
@@ -354,7 +386,8 @@ else
 fi
 log ""
 
-has_m365 "$d"
+has_mx_specific "m365" "Microsoft 365" "mail.protection.outlook.com"
+has_mx_specific "google" "Google Workspace" "aspmx.l.google.com"
 log ""
 
 # SPF checks
@@ -365,7 +398,8 @@ log ""
 
 has_spf "$spf"
 loose_spf "$spf"
-spf_include_m365 "$spf"
+spf_include_domain "$spf" "m365" "Microsoft 365" "spf.protection.outlook.com" "$specific"
+spf_include_domain "$spf" "google" "Google Workspace" "_spf.google.com" "$specific"
 
 log ""
 
@@ -387,9 +421,10 @@ log ""
 log "DKIM:"
 log ""
 
-dkim_m365
+dkim_specific "m365" "Microsoft 365" "selector1 selector2"
+dkim_specific "google" "Google Workspace" "google"
 
-if [ "$m365" -eq 0 ]; then
+if [ "$specific" = "" ]; then
 	dkim_well_known
 fi
 

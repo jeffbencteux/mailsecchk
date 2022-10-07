@@ -25,10 +25,15 @@ arguments:
 * DKIM dictionnary guess for selectors (list is in dkim_selectors.txt)
 * DKIM public key size (if public key extraction is enabled)
 
-Specific to Microsoft 365:
+Checks for specific mail providers:
 
-* SPF set to include M365 SPF
-* DKIM presence (selectors are predictable)
+* SPF set to include mail provider SPF
+* DKIM presence (selectors are often predictable)
+
+Currently included providers:
+
+* Microsoft 365
+* Google workspace
 
 Other features
 
