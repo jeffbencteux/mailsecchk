@@ -10,6 +10,7 @@ arguments:
   -d domain to be checked
   -h display this help and exit
   -l log file to output to
+  -p extract DKIM public key if found
 ```
 
 ## Current checks
@@ -22,11 +23,16 @@ arguments:
 * DMARC sample percentage ("pct")
 * DMARC aggregation and forensic reports send to third-parties ("rua" and "ruf")
 * DKIM dictionnary guess for selectors (list is in dkim_selectors.txt)
+* DKIM public key size (if public key extraction is enabled)
 
 Specific to Microsoft 365:
 
 * SPF set to include M365 SPF
 * DKIM presence (selectors are predictable)
+
+Other features
+
+* DKIM public key extraction if selector is found
 
 ## Examples
 

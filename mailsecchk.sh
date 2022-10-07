@@ -14,6 +14,7 @@ usage()
     echo "  -d domain to be checked"
     echo "  -h display this help and exit"
     echo "  -l log file to output to"
+    echo "  -p extract DKIM public key if found"
     exit 0
 }
 
@@ -65,9 +66,13 @@ print_info()
 
 d=""
 dkim_selectors_file="./dkim_selectors.txt"
+dkim_extract=0
+dkim_key_outfile="./dkim_pubkey.pem"
+# Quite a hard choice of what is a good key size here, for now keeping to < 2048 bits
+dkim_key_minsize=2048
 m365=0
 
-while getopts "d:hl:" o; do
+while getopts "d:hl:p" o; do
     case "${o}" in
 	d)
 	    d="${OPTARG}"
@@ -77,6 +82,9 @@ while getopts "d:hl:" o; do
             ;;
 	l)
 	    logfile="${OPTARG}"
+	    ;;
+	p)
+	    dkim_extract=1
 	    ;;
         *)
 	    usage
@@ -262,10 +270,16 @@ dkim_m365()
 	s1=$(dig +short txt "selector1._domainkey.$d" | grep "v=DKIM")
 	s2=$(dig +short txt "selector2._domainkey.$d" | grep "v=DKIM")
 
-	if [ "$s1" != "" ] || [ "$s2" != "" ]; then
+	if [ "$s1" != "" ]; then
 		print_good "DKIM Microsoft 365 selector set: $s1 $s2"
+		dkim="$s1"
 	else
-		print_bad "DKIM Microsoft 365 selectors not set while MS365 is used"
+		if [ "$s2" != "" ]; then
+			print_good "DKIM Microsoft 365 selector set: $s1 $s2"
+			dkim="$s2"
+		else
+			print_bad "DKIM Microsoft 365 selectors not set while MS365 is used"
+		fi
 	fi
 }
 
@@ -285,6 +299,40 @@ dkim_well_known()
 	done < "$dkim_selectors_file"
 
 	print_medium "DKIM could not be found, try obtaining a valid selector for manual review."
+}
+
+dkim_extract_key()
+{
+	if [ "$dkim_extract" -eq 0 ]; then
+		return
+	fi
+
+	dkim_p=$(echo "$dkim" | grep -Eo 'p=[^;]+' | sed 's/p=//g' | sed 's/[ "]//g')
+
+	print_info "Extracting DKIM public key..."
+
+	echo "-----BEGIN PUBLIC KEY-----" > "$dkim_key_outfile"
+	echo "$dkim_p" >> "$dkim_key_outfile"
+	echo "-----END PUBLIC KEY-----" >> "$dkim_key_outfile"
+
+	dkim_parsed_key=$(openssl rsa -pubin -in "$dkim_key_outfile" -text)
+
+	log "$dkim_parsed_key"
+}
+
+dkim_crypto_keysize()
+{
+	if [ "$dkim_parsed_key" = "" ]; then
+		return
+	fi
+
+	keysize=$(echo "$dkim_parsed_key" | grep -E 'Public-Key:[ ]+\([0-9]+[ ]+bit\)' | grep -Eo '[0-9]+')
+
+	if [ "$keysize" -lt $dkim_key_minsize ]; then
+		print_medium "DKIM public key size is < $dkim_key_minsize bits ($keysize bits)"
+	else
+		print_good "DKIM public key size is correct ($keysize bits)"
+	fi
 }
 
 if [ "$d" = "" ]; then
@@ -343,4 +391,9 @@ dkim_m365
 
 if [ "$m365" -eq 0 ]; then
 	dkim_well_known
+fi
+
+if [ "$dkim" != "" ]; then
+	dkim_extract_key
+	dkim_crypto_keysize
 fi
