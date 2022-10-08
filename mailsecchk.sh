@@ -119,8 +119,8 @@ get_mx()
 has_mx_specific()
 {
 	name="$1"
-	full_name="$2"
-	mx_dn="$3"
+	local full_name="$2"
+	local mx_dn="$3"
 
 	if echo "$mx" | grep -q "$mx_dn"; then
 		print_info "It looks like domain is using $full_name, including specific tests."
@@ -130,14 +130,14 @@ has_mx_specific()
 
 get_spf()
 {
-	domain="$1"
+	local domain="$1"
 
 	spf=$(dig +short txt "$domain" | grep 'spf')
 }
 
 has_spf()
 {
-	spf="$1"
+	local spf="$1"
 
 	if [ "$spf" = "" ]; then
 		print_bad "No SPF for domain"
@@ -148,7 +148,7 @@ has_spf()
 
 loose_spf()
 {
-	spf="$1"
+	local spf="$1"
 
 	if [ "$spf" = "" ]; then
 		return
@@ -163,13 +163,13 @@ loose_spf()
 
 spf_include_domain()
 {
-	spf_local="$1"
-	name="$2"
-	full_name="$3"
-	include_local="$4"
-	found_in_mx=$5
+	local spf="$1"
+	local name="$2"
+	local full_name="$3"
+	local include="$4"
+	local found_in_mx=$5
 
-	if [ "$spf_local" = "" ]; then
+	if [ "$spf" = "" ]; then
 		return
 	fi
 
@@ -177,28 +177,28 @@ spf_include_domain()
 		return
 	fi
 
-	if echo "$spf_local" | grep -q "include:$include_local"; then
-		print_good "SPF includes $name one ($include_local)"
+	if echo "$spf" | grep -q "include:$include"; then
+		print_good "SPF includes $name one ($include)"
 		spf_specific_found=1
 	fi
 }
 
 spf_includes_recursive()
 {
-	spf_local="$1"
-	domain="$2"
-	specific="$3"
+	local spf="$1"
+	local domain="$2"
+	local specific="$3"
 
 	if [ "$spf_recursive" -eq 0 ]; then
 		return
 	fi
 
-	if [ "$spf_local" = "" ]; then
+	if [ "$spf" = "" ]; then
 		return
 	fi
 
 	# Unsure this weak parsing catches all cases
-	spf_includes=$(echo "$spf_local" | grep -Eo "include:[^ ]+" | sed 's/include://g')
+	spf_includes=$(echo "$spf" | grep -Eo "include:[^ ]+" | sed 's/include://g')
 
 	if [ "$spf_includes" != "" ]; then
 		print_info "SPF recursive check for $domain"
@@ -222,14 +222,14 @@ spf_includes_recursive()
 # DMARC checks
 get_dmarc()
 {
-	domain="$1"
+	local domain="$1"
 
 	dmarc=$(dig +short txt "_dmarc.$domain")
 }
 
 has_dmarc()
 {
-	dmarc="$1"
+	local dmarc="$1"
 
 	if [ "$dmarc" = "" ]; then
 		print_bad "No dmarc for domain"
@@ -240,7 +240,7 @@ has_dmarc()
 
 loose_dmarc_policy()
 {
-	dmarc="$1"
+	local dmarc="$1"
 
 	if [ "$dmarc" = "" ]; then
 		return
@@ -255,7 +255,7 @@ loose_dmarc_policy()
 
 loose_dmarc_subpolicy()
 {
-	dmarc="$1"
+	local dmarc="$1"
 
 	if [ "$dmarc" = "" ]; then
 		return
@@ -271,7 +271,7 @@ loose_dmarc_subpolicy()
 
 dmarc_pct()
 {
-	dmarc="$1"
+	local dmarc="$1"
 
 	if [ "$dmarc" = "" ]; then
 		return
@@ -284,7 +284,7 @@ dmarc_pct()
 
 dmarc_rua_ruf()
 {
-	dmarc="$1"
+	local dmarc="$1"
 
 	if [ "$dmarc" = "" ]; then
 		return
@@ -312,16 +312,16 @@ dmarc_rua_ruf()
 
 dkim_specific()
 {
-	name="$1"
-	full_name="$2"
-	selectors="$3"
+	local name="$1"
+	local full_name="$2"
+	local selectors="$3"
 
 	if [ "$specific" != "$name" ]; then
 		return
 	fi
 
 	for s in $selectors; do
-		curr=$(dig +short txt "$s._domainkey.$d" | grep "v=DKIM")
+		local curr=$(dig +short txt "$s._domainkey.$d" | grep "v=DKIM")
 
 		if [ "$curr" != "" ]; then
 			print_good "DKIM $full_name set ($s)"
@@ -340,8 +340,8 @@ dkim_m365()
 		return
 	fi
 
-	s1=$(dig +short txt "selector1._domainkey.$d" | grep "v=DKIM")
-	s2=$(dig +short txt "selector2._domainkey.$d" | grep "v=DKIM")
+	local s1=$(dig +short txt "selector1._domainkey.$d" | grep "v=DKIM")
+	local s2=$(dig +short txt "selector2._domainkey.$d" | grep "v=DKIM")
 
 	if [ "$s1" != "" ]; then
 		print_good "DKIM Microsoft 365 selector set: $s1 $s2"
@@ -380,7 +380,7 @@ dkim_extract_key()
 		return
 	fi
 
-	dkim_p=$(echo "$dkim" | grep -Eo 'p=[^;]+' | sed 's/p=//g' | sed 's/[ "]//g')
+	local dkim_p=$(echo "$dkim" | grep -Eo 'p=[^;]+' | sed 's/p=//g' | sed 's/[ "]//g')
 
 	print_info "Extracting DKIM public key..."
 
@@ -399,7 +399,7 @@ dkim_crypto_keysize()
 		return
 	fi
 
-	keysize=$(echo "$dkim_parsed_key" | grep -E 'Public-Key:[ ]+\([0-9]+[ ]+bit\)' | grep -Eo '[0-9]+')
+	local keysize=$(echo "$dkim_parsed_key" | grep -E 'Public-Key:[ ]+\([0-9]+[ ]+bit\)' | grep -Eo '[0-9]+')
 
 	if [ "$keysize" -lt $dkim_key_minsize ]; then
 		print_medium "DKIM public key size is < $dkim_key_minsize bits ($keysize bits)"

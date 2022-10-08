@@ -1,6 +1,6 @@
 # mailsecchk
 
-A simple POSIX script for mail security checks against domain names.
+A simple shell script (almost) POSIX(1) for mail security checks against domain names.
 
 ```
 Usage: ./mailsecchk.sh [OPTIONS]...
@@ -13,6 +13,8 @@ arguments:
   -p extract DKIM public key if found
   -r SPF recursive tests
 ```
+
+(1): not POSIX anymore as keyword "local" is used, but it should work on most UNIX.
 
 ## Current checks
 
