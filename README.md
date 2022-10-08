@@ -11,12 +11,14 @@ arguments:
   -h display this help and exit
   -l log file to output to
   -p extract DKIM public key if found
+  -r SPF recursive tests
 ```
 
 ## Current checks
 
 * SPF DNS record presence
 * SPF not using FAIL mode "-all"
+* SPF include not resolving to a correct DNS TXT record (potential domain takeover)
 * DMARC DNS record presence
 * DMARC policy ("p")
 * DMARC subpolicy ("sp")
@@ -38,6 +40,9 @@ Currently included providers:
 Other features
 
 * DKIM public key extraction if selector is found
+* Recursive checks on SPF includes
+
+Note: if recursion on SPF includes is not enabled, you may end up with false positives on wether a mail provider SPF is included for a domain or not.
 
 ## Examples
 

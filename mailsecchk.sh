@@ -15,6 +15,7 @@ usage()
     echo "  -h display this help and exit"
     echo "  -l log file to output to"
     echo "  -p extract DKIM public key if found"
+    echo "  -r SPF recursive tests"
     exit 0
 }
 
@@ -65,6 +66,8 @@ print_info()
 }
 
 d=""
+spf_recursive=0
+spf_specific_found=0
 dkim_selectors_file="./dkim_selectors.txt"
 dkim_extract=0
 dkim_key_outfile="./dkim_pubkey.pem"
@@ -72,7 +75,7 @@ dkim_key_outfile="./dkim_pubkey.pem"
 dkim_key_minsize=2048
 specific=""
 
-while getopts "d:hl:p" o; do
+while getopts "d:hl:pr" o; do
     case "${o}" in
 	d)
 	    d="${OPTARG}"
@@ -85,6 +88,9 @@ while getopts "d:hl:p" o; do
 	    ;;
 	p)
 	    dkim_extract=1
+	    ;;
+	r)
+	    spf_recursive=1
 	    ;;
         *)
 	    usage
@@ -157,13 +163,13 @@ loose_spf()
 
 spf_include_domain()
 {
-	spf="$1"
+	spf_local="$1"
 	name="$2"
 	full_name="$3"
-	include="$4"
+	include_local="$4"
 	found_in_mx=$5
 
-	if [ "$spf" = "" ]; then
+	if [ "$spf_local" = "" ]; then
 		return
 	fi
 
@@ -171,11 +177,46 @@ spf_include_domain()
 		return
 	fi
 
-	if echo "$spf" | grep -vq "include:$include"; then
-		print_medium "$name SPF not in includes ($include)"
-	else
-		print_good "SPF includes $name one ($include)"
+	if echo "$spf_local" | grep -q "include:$include_local"; then
+		print_good "SPF includes $name one ($include_local)"
+		spf_specific_found=1
 	fi
+}
+
+spf_includes_recursive()
+{
+	spf_local="$1"
+	domain="$2"
+	specific="$3"
+
+	if [ "$spf_recursive" -eq 0 ]; then
+		return
+	fi
+
+	if [ "$spf_local" = "" ]; then
+		return
+	fi
+
+	# Unsure this weak parsing catches all cases
+	spf_includes=$(echo "$spf_local" | grep -Eo "include:[^ ]+" | sed 's/include://g')
+
+	if [ "$spf_includes" != "" ]; then
+		print_info "SPF recursive check for $domain"
+	fi
+
+
+	for include in $spf_includes; do
+		include_res=$(dig +short txt "$include" | grep "spf")
+
+		if [ "$include_res" = "" ]; then
+			print_bad "SPF include \"$include\" does not resolve to a valid DNS TXT record"
+		else
+			print_info "\"$include\": $include_res"
+			spf_include_domain "$include_res" "m365" "Microsoft 365" "spf.protection.outlook.com" "$specific"
+			spf_include_domain "$include_res" "google" "Google Workspace" "_spf.google.com" "$specific"
+			spf_includes_recursive "$include_res" "$include" "$specific"
+		fi
+	done
 }
 
 # DMARC checks
@@ -373,8 +414,8 @@ if [ "$d" = "" ]; then
 	exit 1
 fi
 
-echo "Checking \e[1;32m$d\e[0m"
-echo
+log "Checking \e[1;32m$d\e[0m"
+log
 
 # Preliminary checks
 get_mx "$d"
@@ -400,6 +441,12 @@ has_spf "$spf"
 loose_spf "$spf"
 spf_include_domain "$spf" "m365" "Microsoft 365" "spf.protection.outlook.com" "$specific"
 spf_include_domain "$spf" "google" "Google Workspace" "_spf.google.com" "$specific"
+spf_includes_recursive "$spf" "$d" "$specific"
+
+# Only at the end of the recursion can we test if specific SPF has not been found
+if [ "$spf_specific_found" -eq 0 ]; then
+	print_medium "$name SPF not in includes ($include)"
+fi
 
 log ""
 
