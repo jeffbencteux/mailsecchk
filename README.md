@@ -26,6 +26,7 @@ arguments:
 * DMARC subpolicy ("sp")
 * DMARC sample percentage ("pct")
 * DMARC aggregation and forensic reports send to third-parties ("rua" and "ruf")
+* DMARC failure report options ("fo")
 * DKIM dictionnary guess for selectors (list is in dkim_selectors.txt)
 * DKIM public key size (if public key extraction is enabled)
 

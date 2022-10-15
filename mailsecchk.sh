@@ -310,6 +310,42 @@ dmarc_rua_ruf()
 	fi
 }
 
+dmarc_fo()
+{
+	local dmarc="$1"
+
+	if [ "$dmarc" = "" ]; then
+		return
+	fi
+
+	fo=$(echo "$dmarc" | grep -oE "fo=[^ ;]")
+
+	# FO defaults to 0, handling below the case where it is not specified but there is a ruf
+	if [ "$fo" = "" ]; then
+		if [ "$ruf" != "" ]; then
+			print_medium "Failure reporting options set to report only if all mechanisms fail (fo=0)"
+		fi
+		return
+	fi
+
+	if echo "$fo" | grep -qEv "fo=[01ds:]+"; then
+		print_bad "Failure reporting options set to unknown value (!= 0,1,d,s)"
+		return
+	fi
+
+	fo_val=$(echo "$fo" | grep -oE "[01ds]")
+
+	if echo "$fo_val" | grep -Eq "0"; then
+		print_medium "Failure reporting options set to report only if all mechanisms fail (fo=0)"
+	fi
+
+	if echo "$fo_val" | grep -Eq '1'; then
+		print_good "Failure reporting options set to 1 (fo=1)"
+	fi
+
+	# 'd' and 's' options may produce a lot of false positives. Leaving them out of the rule for now.
+}
+
 dkim_specific()
 {
 	local name="$1"
@@ -439,6 +475,7 @@ loose_dmarc_policy "$dmarc"
 loose_dmarc_subpolicy "$dmarc"
 dmarc_pct "$dmarc"
 dmarc_rua_ruf "$dmarc"
+dmarc_fo "$dmarc"
 
 log ""
 
