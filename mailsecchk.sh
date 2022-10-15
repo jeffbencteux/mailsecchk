@@ -167,7 +167,7 @@ spf_include_domain()
 	local name="$2"
 	local full_name="$3"
 	local include="$4"
-	local found_in_mx=$5
+	local found_in_mx="$5"
 
 	if [ "$spf" = "" ]; then
 		return
@@ -444,7 +444,7 @@ spf_include_domain "$spf" "google" "Google Workspace" "_spf.google.com" "$specif
 spf_includes_recursive "$spf" "$d" "$specific"
 
 # Only at the end of the recursion can we test if specific SPF has not been found
-if [ "$spf_specific_found" -eq 0 ]; then
+if [ "$specific" != "" ] && [ "$spf_specific_found" -eq 0 ]; then
 	print_medium "$name SPF not in includes ($include)"
 fi
 
