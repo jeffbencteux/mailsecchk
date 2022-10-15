@@ -334,28 +334,6 @@ dkim_specific()
 	fi
 }
 
-dkim_m365()
-{
-	if [ "$specific" != "m365"  ]; then
-		return
-	fi
-
-	local s1=$(dig +short txt "selector1._domainkey.$d" | grep "v=DKIM")
-	local s2=$(dig +short txt "selector2._domainkey.$d" | grep "v=DKIM")
-
-	if [ "$s1" != "" ]; then
-		print_good "DKIM Microsoft 365 selector set: $s1 $s2"
-		dkim="$s1"
-	else
-		if [ "$s2" != "" ]; then
-			print_good "DKIM Microsoft 365 selector set: $s1 $s2"
-			dkim="$s2"
-		else
-			print_bad "DKIM Microsoft 365 selectors not set while MS365 is used"
-		fi
-	fi
-}
-
 dkim_well_known()
 {
 	log "Trying well-known selectors..."
