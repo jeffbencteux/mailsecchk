@@ -22,6 +22,7 @@ arguments:
 * SPF not using FAIL mode "-all"
 * SPF include not resolving to a correct DNS TXT record (potential domain takeover)
 * DMARC DNS record presence
+* DMARC version
 * DMARC policy ("p")
 * DMARC subpolicy ("sp")
 * DMARC sample percentage ("pct")

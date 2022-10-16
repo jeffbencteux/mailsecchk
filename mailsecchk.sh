@@ -238,6 +238,22 @@ has_dmarc()
 	fi
 }
 
+dmarc_version()
+{
+	local dmarc="$1"
+
+	if [ "$dmarc" = "" ]; then
+		return
+	fi
+
+
+	if echo "$dmarc" | grep -Eq "^\"v=DMARC1"; then
+		print_good "DMARC version is correct"
+	else
+		print_bad "DMARC version is incorrect, all record will be ignored by receivers"
+	fi
+}
+
 loose_dmarc_policy()
 {
 	local dmarc="$1"
@@ -473,6 +489,7 @@ log "DMARC: $dmarc"
 log ""
 
 has_dmarc "$dmarc"
+dmarc_version "$dmarc"
 loose_dmarc_policy "$dmarc"
 loose_dmarc_subpolicy "$dmarc"
 dmarc_pct "$dmarc"
