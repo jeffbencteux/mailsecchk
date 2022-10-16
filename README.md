@@ -39,6 +39,7 @@ Currently included providers:
 
 * Microsoft 365
 * Google workspace
+* Amazon SES
 
 Other features
 
