@@ -118,7 +118,7 @@ get_mx()
 
 has_mx_specific()
 {
-	name="$1"
+	local name="$1"
 	local full_name="$2"
 	local mx_dn="$3"
 
@@ -180,6 +180,7 @@ spf_include_domain()
 	if echo "$spf" | grep -q "include:$include"; then
 		print_good "SPF includes $name one ($include)"
 		spf_specific_found=1
+		spf_specific_include="$include"
 	fi
 }
 
@@ -477,7 +478,7 @@ spf_includes_recursive "$spf" "$d" "$specific"
 
 # Only at the end of the recursion can we test if specific SPF has not been found
 if [ "$specific" != "" ] && [ "$spf_specific_found" -eq 0 ]; then
-	print_medium "$name SPF not in includes ($include)"
+	print_medium "$specific SPF not in includes ($spf_specific_include)"
 fi
 
 log ""
