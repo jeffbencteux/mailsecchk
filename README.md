@@ -19,6 +19,7 @@ arguments:
 ## Current checks
 
 * SPF DNS record presence
+* SPF version
 * SPF not using FAIL mode "-all"
 * SPF include not resolving to a correct DNS TXT record (potential domain takeover)
 * DMARC DNS record presence

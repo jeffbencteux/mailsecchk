@@ -146,6 +146,21 @@ has_spf()
 	fi
 }
 
+spf_version()
+{
+	local spf="$1"
+
+	if [ "$spf" = "" ]; then
+		return
+	fi
+
+	if echo "$spf" | grep -Eqv "^\"(v=spf1[ ]|^\"v=spf1$)"; then
+		print_bad "SPF version is incorrect"
+	else
+		print_good "SPF version is correct"
+	fi
+}
+
 loose_spf()
 {
 	local spf="$1"
@@ -478,6 +493,7 @@ log "SPF: $spf"
 log ""
 
 has_spf "$spf"
+spf_version "$spf"
 loose_spf "$spf"
 spf_include_domain "$spf" "m365" "Microsoft 365" "spf.protection.outlook.com" "$specific"
 spf_include_domain "$spf" "google" "Google Workspace" "_spf.google.com" "$specific"
