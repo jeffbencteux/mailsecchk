@@ -263,10 +263,13 @@ loose_dmarc_policy()
 		return
 	fi
 
+	loose_dmarc_p=0
+
 	if echo "$dmarc" | grep -Eq "[ ;]p=(reject|quarantine)"; then
 		print_good "DMARC policy is correct"
 	else
 		print_bad "DMARC policy not set to \"reject\" or \"quarantine\""
+		loose_dmarc_p=1
 	fi
 }
 
@@ -282,7 +285,11 @@ loose_dmarc_subpolicy()
 	if echo "$dmarc" | grep "sp=" | grep -vEq "sp=(reject|quarantine)"; then
 		print_bad "DMARC subpolicy not set to \"reject\" or \"quarantine\""
 	else
-		print_good "DMARC subpolicy is correct"
+		if [ "$loose_dmarc_p" -eq 1 ]; then
+			print_bad "DMARC subpolicy not set to \"reject\" or \"quarantine\""
+		else
+			print_good "DMARC subpolicy is correct"
+		fi
 	fi
 }
 
