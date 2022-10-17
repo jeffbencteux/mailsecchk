@@ -461,6 +461,7 @@ log ""
 has_mx_specific "m365" "Microsoft 365" "mail.protection.outlook.com"
 has_mx_specific "google" "Google Workspace" "aspmx.l.google.com"
 has_mx_specific "amazon" "Amazon SES" "amazonaws.com"
+has_mx_specific "ovh" "OVH Cloud" "mail.ovh.net"
 log ""
 
 # SPF checks
@@ -474,6 +475,7 @@ loose_spf "$spf"
 spf_include_domain "$spf" "m365" "Microsoft 365" "spf.protection.outlook.com" "$specific"
 spf_include_domain "$spf" "google" "Google Workspace" "_spf.google.com" "$specific"
 spf_include_domain "$spf" "amazon" "Amazon SES" "amazonses.com" "$specific"
+spf_include_domain "$spf" "ovh" "OVH Cloud" "mx.ovh.com" "$specific"
 spf_includes_recursive "$spf" "$d" "$specific"
 
 # Only at the end of the recursion can we test if specific SPF has not been found
