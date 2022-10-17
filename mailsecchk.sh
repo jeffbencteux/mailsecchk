@@ -433,7 +433,7 @@ dkim_extract_key()
 		return
 	fi
 
-	local dkim_p=$(echo "$dkim" | grep -Eo 'p=[^;]+' | sed 's/p=//g' | sed 's/[ "]//g')
+	local dkim_p="$(echo "$dkim" | grep -Eo 'p=[^;]+' | sed 's/p=//g' | sed 's/[ "]//g')"
 
 	print_info "Extracting DKIM public key..."
 
@@ -452,7 +452,7 @@ dkim_crypto_keysize()
 		return
 	fi
 
-	local keysize=$(echo "$dkim_parsed_key" | grep -E 'Public-Key:[ ]+\([0-9]+[ ]+bit\)' | grep -Eo '[0-9]+')
+	local keysize="$(echo "$dkim_parsed_key" | grep -E 'Public-Key:[ ]+\([0-9]+[ ]+bit\)' | grep -Eo '[0-9]+')"
 
 	if [ "$keysize" -lt $dkim_key_minsize ]; then
 		print_medium "DKIM public key size is < $dkim_key_minsize bits ($keysize bits)"
