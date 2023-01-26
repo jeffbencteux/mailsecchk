@@ -385,6 +385,22 @@ dmarc_fo()
 	# 'd' and 's' options may produce a lot of false positives. Leaving them out of the rule for now.
 }
 
+dmarc_id_alignment()
+{
+	local dmarc="$1"
+	local id="$2"
+
+	if [ "$dmarc" = "" ]; then
+		return
+	fi
+
+	if echo "$dmarc" | grep -q "$id=s"; then
+		print_good "DMARC Identifier alignment in strict mode (\"$id=s\")"
+	else
+		print_medium "DMARC Identifier alignment in relaxed mode (\"$id=r\")"
+	fi
+}
+
 dkim_specific()
 {
 	local name="$1"
@@ -521,6 +537,8 @@ loose_dmarc_subpolicy "$dmarc"
 dmarc_pct "$dmarc"
 dmarc_rua_ruf "$dmarc"
 dmarc_fo "$dmarc"
+dmarc_id_alignment "$dmarc" "aspf"
+dmarc_id_alignment "$dmarc" "adkim"
 
 log ""
 

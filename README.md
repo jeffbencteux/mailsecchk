@@ -29,6 +29,7 @@ arguments:
 * DMARC sample percentage ("pct")
 * DMARC aggregation and forensic reports send to third-parties ("rua" and "ruf")
 * DMARC failure report options ("fo")
+* DMARC SPF and DKIM alignment set to relaxed mode (see [there](https://www.bencteux.fr/posts/dmarc_relax/) for why)
 * DKIM dictionnary guess for selectors (list is in dkim_selectors.txt)
 * DKIM public key size (if public key extraction is enabled)
 
