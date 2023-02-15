@@ -530,6 +530,39 @@ mta_sts_policy()
 	fi
 }
 
+get_tls_rpt()
+{
+	local domain="$1"
+
+	tls_rpt=$(dig +short txt "_smtp._tls.$domain")
+}
+
+has_tls_rpt()
+{
+	tls_rpt="$1"
+
+	if [ "$tls_rpt" = "" ]; then
+		print_medium "TLS-RPT record not defined"
+	else
+		print_good "TLS-RPT record found"
+	fi
+}
+
+tls_rpt_version()
+{
+	tls_rpt="$1"
+
+	if [ "$tls_rpt" = "" ]; then
+		return
+	fi
+
+	if echo "$tls_rpt" | grep -q "v=TLSRPTv1"; then
+		print_good "TLS-RPT version is correct"
+	else
+		print_bad "TLS-RPT version incorrect"
+	fi
+}
+
 if [ "$d" = "" ]; then
 	echo "No domain provided."
 	usage
@@ -622,3 +655,14 @@ log ""
 has_mta_sts "$mta_sts"
 mta_sts_version "$mta_sts"
 mta_sts_policy "$d"
+
+log ""
+
+# TLS-RPT checks
+get_tls_rpt "$d"
+
+log "TLS-RPT: $tls_rpt"
+log ""
+
+has_tls_rpt "$tls_rpt"
+tls_rpt_version "$tls_rpt"

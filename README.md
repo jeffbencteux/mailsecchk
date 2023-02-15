@@ -35,6 +35,8 @@ arguments:
 * MTA-STS DNS record presence
 * MTA-STS DNS record version
 * MTA-STS HTTPS policy presence
+* TLS-RPT DNS record presence
+* TLS-RPT version
 
 Checks for specific mail providers:
 
