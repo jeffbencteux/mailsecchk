@@ -32,6 +32,9 @@ arguments:
 * DMARC SPF and DKIM alignment set to relaxed mode (see [there](https://www.bencteux.fr/posts/dmarc_relax/) for why)
 * DKIM dictionnary guess for selectors (list is in dkim_selectors.txt)
 * DKIM public key size (if public key extraction is enabled)
+* MTA-STS DNS record presence
+* MTA-STS DNS record version
+* MTA-STS HTTPS policy presence
 
 Checks for specific mail providers:
 

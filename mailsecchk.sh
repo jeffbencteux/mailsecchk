@@ -477,6 +477,59 @@ dkim_crypto_keysize()
 	fi
 }
 
+get_mta_sts()
+{
+	local domain="$1"
+
+	mta_sts=$(dig +short txt "_mta-sts.$domain")
+}
+
+has_mta_sts()
+{
+	local mta_sts="$1"
+
+	if [ "$mta_sts" = "" ]; then
+		print_medium "MTA-STS record not defined"
+	else
+		print_good "MTA-STS record exists"
+	fi
+}
+
+mta_sts_version()
+{
+	local mta_sts="$1"
+
+	if [ "$mta_sts" = "" ]; then
+		return
+	fi
+
+	if echo $mta_sts | grep -q "v=STSv1"; then
+		print_good "MTA-STS version is correct"
+	else
+		print_bad "MTA-STS version incorrect"
+	fi
+}
+
+mta_sts_policy()
+{
+	local domain="$1"
+
+	if [ "$mta_sts" = "" ]; then
+		return
+	fi
+
+	mta_sts_policy=$(curl -s "https://mta-sts.$domain/.well-known/mta-sts.txt")
+
+	if [ "$mta_sts_policy" = "" ]; then
+		print_bad "MTA-STS no policy available at https://mta-sts.$domain/.well-known/mta-sts.txt"
+	else
+		print_good "MTA-STS policy available:"
+		log ""
+		log "$mta_sts_policy"
+		log ""
+	fi
+}
+
 if [ "$d" = "" ]; then
 	echo "No domain provided."
 	usage
@@ -557,3 +610,15 @@ if [ "$dkim" != "" ]; then
 	dkim_extract_key
 	dkim_crypto_keysize
 fi
+
+log ""
+
+# MTA-STS checks
+get_mta_sts "$d"
+
+log "MTA-STS: $mta_sts"
+log ""
+
+has_mta_sts "$mta_sts"
+mta_sts_version "$mta_sts"
+mta_sts_policy "$d"
