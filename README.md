@@ -38,6 +38,7 @@ arguments:
 * TLS-RPT DNS record presence
 * TLS-RPT version
 * TLS-RPT reports send to third-parties ("rua")
+* DANE TLSA records presence for each MX entry
 
 Checks for specific mail providers:
 

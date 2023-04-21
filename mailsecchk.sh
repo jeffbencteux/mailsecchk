@@ -579,6 +579,41 @@ tls_rpt_third_party()
 	fi
 }
 
+dane_tlsa_rec()
+{
+	domain="$1"
+	port="$2"
+
+	if [ "$domain" = "" ]; then
+		return
+	fi
+
+	tlsa_rec=$(dig +short tlsa "_$port._tcp.$domain")
+
+	if [ "$tlsa_rec" = "" ]; then
+		print_bad "DANE no TLSA record for $domain"
+		return
+	fi
+
+	print_good "DANE TLSA record for $domain: \"$tlsa_rec\""
+}
+
+dane()
+{
+	mx="$1"
+
+	if [ "$mx" = "" ]; then
+		return
+	fi
+
+	mx_names=$(echo "$mx" | awk '{print $2}')
+
+	for entry in $mx_names; do
+		# Only testing port 25 for now, might be necessary to add more
+		dane_tlsa_rec "$entry" "25"
+	done
+}
+
 if [ "$d" = "" ]; then
 	echo "No domain provided."
 	usage
@@ -683,3 +718,11 @@ log ""
 has_tls_rpt "$tls_rpt"
 tls_rpt_version "$tls_rpt"
 tls_rpt_third_party "$d" "$tls_rpt"
+
+log ""
+
+# DANE for SMTP
+log "DANE for SMTP"
+log ""
+
+dane "$mx"
