@@ -563,6 +563,22 @@ tls_rpt_version()
 	fi
 }
 
+tls_rpt_third_party()
+{
+	domain="$1"
+	tls_rpt="$2"
+
+	if [ "$tls_rpt" = "" ]; then
+		return
+	fi
+
+	rua=$(echo "$dmarc" | grep -oE "rua=[^ ]+";)
+
+	if echo "$rua" | grep -Eo "@[^ ,\"]+" | grep -vq "$d"; then
+		print_medium "TLS-RPT reports sent to third-parties, please review manually"
+	fi
+}
+
 if [ "$d" = "" ]; then
 	echo "No domain provided."
 	usage
@@ -666,3 +682,4 @@ log ""
 
 has_tls_rpt "$tls_rpt"
 tls_rpt_version "$tls_rpt"
+tls_rpt_third_party "$d" "$tls_rpt"

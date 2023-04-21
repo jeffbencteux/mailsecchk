@@ -37,6 +37,7 @@ arguments:
 * MTA-STS HTTPS policy presence
 * TLS-RPT DNS record presence
 * TLS-RPT version
+* TLS-RPT reports send to third-parties ("rua")
 
 Checks for specific mail providers:
 
