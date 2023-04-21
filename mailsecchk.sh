@@ -412,7 +412,7 @@ dkim_specific()
 	fi
 
 	for s in $selectors; do
-		local curr=$(dig +short txt "$s._domainkey.$d" | grep "v=DKIM")
+		local curr="$(dig +short txt "$s._domainkey.$d" | grep "v=DKIM")"
 
 		if [ "$curr" != "" ]; then
 			print_good "DKIM $full_name set ($s)"
@@ -503,7 +503,7 @@ mta_sts_version()
 		return
 	fi
 
-	if echo $mta_sts | grep -q "v=STSv1"; then
+	if echo "$mta_sts" | grep -q "v=STSv1"; then
 		print_good "MTA-STS version is correct"
 	else
 		print_bad "MTA-STS version incorrect"
