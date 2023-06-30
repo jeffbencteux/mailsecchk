@@ -767,14 +767,14 @@ tls_rpt_third_party "$d" "$tls_rpt"
 log ""
 
 # DANE for SMTP
-log "DANE for SMTP"
+log "DANE for SMTP:"
 log ""
 
 dane "$mx"
 log ""
 
 # BIMI
-log "BIMI"
+log "BIMI:"
 log ""
 
 get_bimi "$d"
