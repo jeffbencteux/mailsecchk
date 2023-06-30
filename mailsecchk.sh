@@ -74,6 +74,7 @@ dkim_key_outfile="./dkim_pubkey.pem"
 # Quite a hard choice of what is a good key size here, for now keeping to < 2048 bits
 dkim_key_minsize=2048
 specific=""
+bimi_selectors_file="./bimi_selectors.txt"
 
 while getopts "d:hl:pr" o; do
     case "${o}" in
@@ -614,6 +615,50 @@ dane()
 	done
 }
 
+get_bimi()
+{
+	local domain="$1"
+	local selectors="$2"
+
+	log "Trying well-known selectors..."
+
+	while read -r s; do
+		print_info "$s"
+		local curr="$(dig +short txt "$s._bimi.$d" | grep "v=BIMI")"
+
+		if [ "$curr" != "" ]; then
+			print_good "BIMI found for selector $s: $curr"
+			bimi="$curr"
+		fi
+	done < "$bimi_selectors_file"
+}
+
+has_bimi()
+{
+	local bimi="$1"
+
+	if [ "$bimi" = "" ]; then
+		print_info "BIMI record not defined"
+	else
+		print_good "BIMI record exists"
+	fi
+}
+
+bimi_version()
+{
+	local bimi="$1"
+
+	if [ "$bimi" = "" ]; then
+		return
+	fi
+
+	if echo "$bimi" | grep -q "v=BIMI1"; then
+		print_good "BIMI version is correct"
+	else
+		print_bad "BIMI version incorrect"
+	fi
+}
+
 if [ "$d" = "" ]; then
 	echo "No domain provided."
 	usage
@@ -726,3 +771,12 @@ log "DANE for SMTP"
 log ""
 
 dane "$mx"
+log ""
+
+# BIMI
+log "BIMI"
+log ""
+
+get_bimi "$d"
+has_bimi "$bimi"
+bimi_version "$bimi"

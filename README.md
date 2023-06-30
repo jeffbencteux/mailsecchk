@@ -39,6 +39,8 @@ arguments:
 * TLS-RPT version
 * TLS-RPT reports send to third-parties ("rua")
 * DANE TLSA records presence for each MX entry
+* BIMI dictionnary guess for selectors (list is in bimi_selectors.txt)
+* BIMI version
 
 Checks for specific mail providers:
 
