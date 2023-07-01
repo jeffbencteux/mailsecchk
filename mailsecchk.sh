@@ -16,7 +16,6 @@ usage()
     echo "  -l log file to output to"
     echo "  -p extract DKIM public key if found"
     echo "  -r SPF recursive tests"
-    exit 0
 }
 
 log()
@@ -81,9 +80,10 @@ while getopts "d:hl:pr" o; do
 	d)
 	    d="${OPTARG}"
 	    ;;
-        h)
-            usage
-            ;;
+	h)
+		usage
+		exit 0
+		;;
 	l)
 	    logfile="${OPTARG}"
 	    ;;
@@ -93,8 +93,9 @@ while getopts "d:hl:pr" o; do
 	r)
 	    spf_recursive=1
 	    ;;
-        *)
+	*)
 	    usage
+		exit 1
 	    ;;
     esac
 done
