@@ -21,7 +21,7 @@ usage()
 
 log()
 {
-	echo "$1"
+	printf '%b\n' "$1"
 
 	if [ "$logfile" != "" ]; then
 		echo "$1" >> "$logfile"
@@ -30,7 +30,7 @@ log()
 
 print_good()
 {
-	echo "\e[1;32m[+]\e[0m $1"
+	printf '\033[1;32m[+]\033[0m %s\n' "$1"
 
 	if [ "$logfile" != "" ]; then
 		echo "[+] $1" >> "$logfile"
@@ -40,7 +40,7 @@ print_good()
 
 print_bad()
 {
-	echo "\e[1;31m[-]\e[0m $1"
+	printf '\033[1;31m[-]\033[0m %s\n' "$1"
 
 	if [ "$logfile" != "" ]; then
 		echo "[-] $1" >> "$logfile"
@@ -49,7 +49,7 @@ print_bad()
 
 print_medium()
 {
-	echo "\e[1;33m[~]\e[0m $1"
+	printf '\033[1;33m[~]\033[0m %s\n' "$1"
 
 	if [ "$logfile" != "" ]; then
 		echo "[~] $1" >> "$logfile"
@@ -58,7 +58,7 @@ print_medium()
 
 print_info()
 {
-	echo "\e[1;34m[I]\e[0m $1"
+	printf '\033[1;34m[I]\033[0m %s\n' "$1"
 
 	if [ "$logfile" != "" ]; then
 		echo "[I] $1" >> "$logfile"
@@ -665,7 +665,7 @@ if [ "$d" = "" ]; then
 	exit 1
 fi
 
-log "Checking \e[1;32m$d\e[0m"
+log "Checking \033[1;32m$d\033[0m"
 log
 
 # Preliminary checks
