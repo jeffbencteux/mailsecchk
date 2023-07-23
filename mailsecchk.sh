@@ -414,7 +414,8 @@ dkim_specific()
 	fi
 
 	for s in $selectors; do
-		local curr="$(dig +short txt "$s._domainkey.$d" | grep "v=DKIM")"
+		local curr
+		curr=$(dig +short txt "$s._domainkey.$d" | grep 'v=DKIM')
 
 		if [ "$curr" != "" ]; then
 			print_good "DKIM $full_name set ($s)"
@@ -451,7 +452,8 @@ dkim_extract_key()
 		return
 	fi
 
-	local dkim_p="$(echo "$dkim" | grep -Eo 'p=[^;]+' | sed 's/p=//g' | sed 's/[ "]//g')"
+	local dkim_p
+	dkim_p=$(echo "$dkim" | grep -Eo 'p=[^;]+' | sed 's/p=//g' | sed 's/[ "]//g')
 
 	print_info "Extracting DKIM public key..."
 
@@ -470,7 +472,8 @@ dkim_crypto_keysize()
 		return
 	fi
 
-	local keysize="$(echo "$dkim_parsed_key" | grep -E 'Public-Key:[ ]+\([0-9]+[ ]+bit\)' | grep -Eo '[0-9]+')"
+	local keysize
+	keysize=$(echo "$dkim_parsed_key" | grep -E 'Public-Key:[ ]+\([0-9]+[ ]+bit\)' | grep -Eo '[0-9]+')
 
 	if [ "$keysize" -lt $dkim_key_minsize ]; then
 		print_medium "DKIM public key size is < $dkim_key_minsize bits ($keysize bits)"
@@ -625,7 +628,8 @@ get_bimi()
 
 	while read -r s; do
 		print_info "$s"
-		local curr="$(dig +short txt "$s._bimi.$d" | grep "v=BIMI")"
+		local curr
+		curr="$(dig +short txt "$s._bimi.$d" | grep 'v=BIMI')"
 
 		if [ "$curr" != "" ]; then
 			print_good "BIMI found for selector $s: $curr"
