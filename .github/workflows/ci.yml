@@ -4,10 +4,10 @@ on:
   pull_request:
 jobs:
   shellcheck:
-    runs-on: macos-latest
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
       - name: Install shellcheck
-        run: brew install shellcheck
+        run: sudo apt install shellcheck
       - name: Run shellcheck
         run: shellcheck --color=always mailsecchk.sh
