@@ -80,25 +80,25 @@ bimi_selectors_file="./bimi_selectors.txt"
 while getopts "d:hl:pr" o; do
     case "${o}" in
 	d)
-	    d="${OPTARG}"
-	    ;;
+		d="${OPTARG}"
+		;;
 	h)
 		usage
 		exit 0
 		;;
 	l)
-	    logfile="${OPTARG}"
-	    ;;
+		logfile="${OPTARG}"
+		;;
 	p)
-	    dkim_extract=1
-	    ;;
+		dkim_extract=1
+		;;
 	r)
-	    spf_recursive=1
-	    ;;
+		spf_recursive=1
+		;;
 	*)
-	    usage
+		usage
 		exit 1
-	    ;;
+		;;
     esac
 done
 shift $((OPTIND-1))
