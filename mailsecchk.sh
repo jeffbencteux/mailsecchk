@@ -5,6 +5,8 @@
 # This source code is licensed under the GPLv3 license found in the
 # LICENSE file in the root directory of this source tree.
 
+# shellcheck disable=SC3043
+
 usage()
 {
     echo "Usage: $0 [OPTIONS]..."
@@ -16,12 +18,11 @@ usage()
     echo "  -l log file to output to"
     echo "  -p extract DKIM public key if found"
     echo "  -r SPF recursive tests"
-    exit 0
 }
 
 log()
 {
-	echo "$1"
+	printf '%b\n' "$1"
 
 	if [ "$logfile" != "" ]; then
 		echo "$1" >> "$logfile"
@@ -30,7 +31,7 @@ log()
 
 print_good()
 {
-	echo "\e[1;32m[+]\e[0m $1"
+	printf '\033[1;32m[+]\033[0m %s\n' "$1"
 
 	if [ "$logfile" != "" ]; then
 		echo "[+] $1" >> "$logfile"
@@ -40,7 +41,7 @@ print_good()
 
 print_bad()
 {
-	echo "\e[1;31m[-]\e[0m $1"
+	printf '\033[1;31m[-]\033[0m %s\n' "$1"
 
 	if [ "$logfile" != "" ]; then
 		echo "[-] $1" >> "$logfile"
@@ -49,7 +50,7 @@ print_bad()
 
 print_medium()
 {
-	echo "\e[1;33m[~]\e[0m $1"
+	printf '\033[1;33m[~]\033[0m %s\n' "$1"
 
 	if [ "$logfile" != "" ]; then
 		echo "[~] $1" >> "$logfile"
@@ -58,7 +59,7 @@ print_medium()
 
 print_info()
 {
-	echo "\e[1;34m[I]\e[0m $1"
+	printf '\033[1;34m[I]\033[0m %s\n' "$1"
 
 	if [ "$logfile" != "" ]; then
 		echo "[I] $1" >> "$logfile"
@@ -79,23 +80,25 @@ bimi_selectors_file="./bimi_selectors.txt"
 while getopts "d:hl:pr" o; do
     case "${o}" in
 	d)
-	    d="${OPTARG}"
-	    ;;
-        h)
-            usage
-            ;;
+		d="${OPTARG}"
+		;;
+	h)
+		usage
+		exit 0
+		;;
 	l)
-	    logfile="${OPTARG}"
-	    ;;
+		logfile="${OPTARG}"
+		;;
 	p)
-	    dkim_extract=1
-	    ;;
+		dkim_extract=1
+		;;
 	r)
-	    spf_recursive=1
-	    ;;
-        *)
-	    usage
-	    ;;
+		spf_recursive=1
+		;;
+	*)
+		usage
+		exit 1
+		;;
     esac
 done
 shift $((OPTIND-1))
@@ -413,7 +416,8 @@ dkim_specific()
 	fi
 
 	for s in $selectors; do
-		local curr="$(dig +short txt "$s._domainkey.$d" | grep "v=DKIM")"
+		local curr
+		curr=$(dig +short txt "$s._domainkey.$d" | grep 'v=DKIM')
 
 		if [ "$curr" != "" ]; then
 			print_good "DKIM $full_name set ($s)"
@@ -450,7 +454,8 @@ dkim_extract_key()
 		return
 	fi
 
-	local dkim_p="$(echo "$dkim" | grep -Eo 'p=[^;]+' | sed 's/p=//g' | sed 's/[ "]//g')"
+	local dkim_p
+	dkim_p=$(echo "$dkim" | grep -Eo 'p=[^;]+' | sed 's/p=//g' | sed 's/[ "]//g')
 
 	print_info "Extracting DKIM public key..."
 
@@ -469,7 +474,8 @@ dkim_crypto_keysize()
 		return
 	fi
 
-	local keysize="$(echo "$dkim_parsed_key" | grep -E 'Public-Key:[ ]+\([0-9]+[ ]+bit\)' | grep -Eo '[0-9]+')"
+	local keysize
+	keysize=$(echo "$dkim_parsed_key" | grep -E 'Public-Key:[ ]+\([0-9]+[ ]+bit\)' | grep -Eo '[0-9]+')
 
 	if [ "$keysize" -lt $dkim_key_minsize ]; then
 		print_medium "DKIM public key size is < $dkim_key_minsize bits ($keysize bits)"
@@ -624,7 +630,8 @@ get_bimi()
 
 	while read -r s; do
 		print_info "$s"
-		local curr="$(dig +short txt "$s._bimi.$d" | grep "v=BIMI")"
+		local curr
+		curr="$(dig +short txt "$s._bimi.$d" | grep 'v=BIMI')"
 
 		if [ "$curr" != "" ]; then
 			print_good "BIMI found for selector $s: $curr"
@@ -665,7 +672,7 @@ if [ "$d" = "" ]; then
 	exit 1
 fi
 
-log "Checking \e[1;32m$d\e[0m"
+log "Checking \033[1;32m$d\033[0m"
 log
 
 # Preliminary checks
